@@ -1,0 +1,41 @@
+<img width="409" height="867" alt="Screenshot 2025-11-23 195234" src="https://github.com/user-attachments/assets/24d72525-08fc-4c95-9aa5-34643c9d8842" />
+<img width="433" height="871" alt="Screenshot 2025-11-23 200626" src="https://github.com/user-attachments/assets/ef9fba6c-e037-4432-931b-5bb8e9dcd132" />
+<img width="419" height="859" alt="Screenshot 2025-11-23 200639" src="https://github.com/user-attachments/assets/c6fde017-f46e-4b75-9a68-7749c414c4c6" />
+<img width="414" height="881" alt="Screenshot 2025-11-23 200653" src="https://github.com/user-attachments/assets/bc288198-fd7c-4ffc-9170-ef3c8f01994b" />
+<img width="451" height="872" alt="Screenshot 2025-11-23 200707" src="https://github.com/user-attachments/assets/48d4de4f-66b2-4999-86f8-a9d3ba9fa7ae" />
+
+
+Assignment
+Soal 1.	 
+Bagian kode yang menangani logika ini terdapat pada callback takePictureLauncher 
+yang merespons hasil dari aktivitas kamera. 
+Jika pengambilan gambar berhasil (success), maka fungsi insertImageToStore akan dipanggil untuk menyalin data dari URI sementara ke MediaStore.
+
+takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+    if (success) {
+        providerFileManager.insertImageToStore(photoInfo)
+    }
+}
+
+Dan proses penyalinan stream data yang sesungguhnya terjadi di dalam fungsi insertImageToStore (atau helper terkait):
+
+val input = contentResolver.openInputStream(fileInfo.uri)
+val output = contentResolver.openOutputStream(insertedUri)
+IOUtils.copy(input, output)
+
+
+Soal 2. 
+- URI (Atribut pertama): Atribut ini merujuk pada Content URI yang dihasilkan oleh FileProvider. 
+URI ini berfungsi sebagai penunjuk lokasi (reference) yang aman di mana aplikasi kamera akan menuliskan data gambar yang diambil.
+
+-relativePath (Atribut keempat): Atribut ini merujuk pada jalur folder tujuan di dalam MediaStore (penyimpanan publik), seperti "Pictures/" atau "DCIM/". 
+Ini menentukan di folder mana foto tersebut akan dikategorikan agar bisa muncul di Galeri.
+
+Soal 3.  
+
+1. Inisiasi: Pengguna menekan tombol di aplikasi untuk mengambil foto.
+2. Persiapan URI: Aplikasi membuat file sementara dan menghasilkan URI aman menggunakan FileProvider (biasanya melalui fungsi seperti generatePhotoUri).
+3. Aktivitas Kamera: Aplikasi meluncurkan intent kamera dan memberikan URI tersebut. Kamera mengambil foto dan menuliskan datanya ke lokasi URI yang diberikan.
+4. Konfirmasi: Setelah foto berhasil diambil, aplikasi menerima sinyal success pada launcher.
+5. Penyimpanan ke MediaStore: Fungsi insertImageToStore dipanggil. Aplikasi membaca data dari URI sementara (menggunakan InputStream) dan menyalinnya ke entri baru di MediaStore/Gallery (menggunakan OutputStream via ContentResolver).
+6. Selesai: Foto kini tersimpan secara permanen sebagai media publik dan dapat dilihat di galeri perangkat.
